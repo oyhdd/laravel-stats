@@ -1,0 +1,35 @@
+{
+    "name": "oyhdd/stats-center",
+    "description": "模调系统",
+    "keywords": ["package", "library", "laravel", "module", "stats"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "wangmeng",
+            "email": "1040089624@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "encore/laravel-admin": "^1.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Oyhdd\\StatsCenter\\": "src/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "secure-http" : false,
+        "optimize-autoloader": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Oyhdd\\StatsCenter\\StatsCenterServiceProvider"
+            ]
+        }
+    }
+}

@@ -1,0 +1,172 @@
+<?php
+
+namespace Oyhdd\StatsCenter\Console;
+
+use Illuminate\Console\Command;
+use Oyhdd\StatsCenter\Models\Api;
+use Oyhdd\StatsCenter\Models\Module;
+use Oyhdd\StatsCenter\Models\StatsSum as StatsSumModel;
+use Oyhdd\StatsCenter\Models\Stats;
+
+/**
+ * php artisan stats-sum --date=2019-09-17
+ */
+class StatsSum extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'stats:sum {--date=}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    protected $moduleInfo;
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $date = $this->option('date');
+        if (empty($date)) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+        $this->sum($date);
+    }
+
+    public function sum($date)
+    {
+        //获取所有接口
+        $interfaceInfo = Api::select(['id', 'name', 'module_id'])->orderBy('id', 'desc')->get()->toArray();
+        $this->moduleInfo = Module::pluck('name', 'id')->toArray();
+
+        echo "update interface, interface_num=".count($interfaceInfo)." start\n";
+        foreach ($interfaceInfo as $key => $ifce) {
+            $res = $this->sumInterfaceData($date, $ifce, $this->moduleInfo);
+            if ($key / 10 == 0) {
+                sleep(1);
+            }
+            if (empty($res)) {
+                echo "update interface [", $ifce['name'], "] unchanged\n";
+            } else {
+                echo "update interface [", $ifce['name'], "] changed\n";
+                if ($key / 10 == 0) {
+                    sleep(1);
+                }
+            }
+        }
+    }
+
+    /**
+     * 汇总接口的数据
+     * @param $interface_id
+     * @param $name
+     * @param $module_info
+     * @return bool|model
+     * @throws Exception
+     */
+    public function sumInterfaceData($date, $ifce, $module_info)
+    {
+        $interface_id = $ifce['id'];
+        $name = $ifce['name'];
+        $module_id = $ifce['module_id'];
+
+        $res = Stats::where([
+            'date_key' => $date,
+            'interface_id' => $interface_id,
+            'module_id' => $module_id,
+        ])->orderBy('time_key', 'asc')->get()->toArray();
+        if (!empty($res)) {
+            $caculate = [];
+            foreach ($res as $v) {
+                //总数
+                if (!isset($caculate['total_count'])) {
+                    $caculate['total_count'] = $v['total_count'];
+                } else {
+                    $caculate['total_count'] += $v['total_count'];
+                }
+                //失败汇总
+                if (!isset($caculate['fail_count'])) {
+                    $caculate['fail_count'] = $v['fail_count'];
+                } else {
+                    $caculate['fail_count'] += $v['fail_count'];
+                }
+                //总时间汇总
+                if (!isset($caculate['total_time'])) {
+                    $caculate['total_time'] = $v['total_time'];
+                } else {
+                    $caculate['total_time'] += $v['total_time'];
+                }
+                //总失败时间汇总 total_fail_time
+                if (!isset($caculate['total_fail_time'])) {
+                    $caculate['total_fail_time'] = $v['total_fail_time'];
+                } else {
+                    $caculate['total_fail_time'] += $v['total_fail_time'];
+                }
+
+                //获取最大时间
+                if (!isset($caculate['max_time'])) {
+                    $caculate['max_time'] = $v['max_time'];
+                } elseif ($caculate['max_time'] < $v['max_time']) {
+                    $caculate['max_time'] = $v['max_time'];
+                }
+                //获取最小时间
+                if (!isset($caculate['min_time'])) {
+                    $caculate['min_time'] = $v['min_time'];
+                } elseif ($caculate['min_time'] > $v['min_time']) {
+                    $caculate['min_time'] = $v['min_time'];
+                }
+            }
+
+            //平均响应时间
+            if ($caculate['total_count'] != 0) {
+                $caculate['avg_time'] = round($caculate['total_time'] / $caculate['total_count'], 2);
+                $caculate['succ_rate'] = floor((($caculate['total_count'] - $caculate['fail_count']) / $caculate['total_count']) * 10000) / 100;
+            } else {
+                $caculate['avg_time'] = 0;
+                $caculate['succ_rate'] = 0;
+            }
+            //平均失败响应时间
+            if ($caculate['fail_count'] != 0) {
+                $caculate['avg_fail_time'] = round($caculate['total_fail_time'] / $caculate['fail_count'],2);
+            } else {
+                $caculate['avg_fail_time'] = 0;
+            }
+            $caculate['succ_count'] = $caculate['total_count'] - $caculate['fail_count'];
+            $caculate['interface_name'] = $name;
+            $module_name = isset($module_info[$module_id]) ? $module_info[$module_id] : '';
+            $caculate['module_name'] = $module_name;
+
+            $attributes = [
+                'date_key'     => $date,
+                'interface_id' => $interface_id,
+                'module_id'    => $module_id,
+            ];
+
+            return StatsSumModel::updateOrCreate($attributes, $caculate);
+        } else {
+            return false;
+        }
+    }
+}
