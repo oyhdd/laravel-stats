@@ -1,5 +1,5 @@
 {
-    "name": "oyhdd/stats-center",
+    "name": "oyhdd/laravel-stats",
     "description": "模调系统",
     "keywords": ["package", "library", "laravel", "module", "stats"],
     "type": "library",

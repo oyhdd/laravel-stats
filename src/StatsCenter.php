@@ -14,10 +14,8 @@ namespace Oyhdd\StatsCenter;
 class StatsCenter
 {
     const PACK_STATS  = 'NNCNNNN';
-    // const HOST_STATS  = 'host.docker.internal:9903';
-    // const HOST_AOPNET = 'host.docker.internal:9904';
-    const HOST_STATS  = 'php72-fpm:9903';
-    const HOST_AOPNET = 'php72-fpm:9904';
+    const HOST_STATS  = '127.0.0.1:9903';
+    const HOST_AOPNET = '127.0.0.1:9904';
 
     /**
      * tick时间数组
@@ -39,7 +37,6 @@ class StatsCenter
             }
             self::$timeMap[$interface][$moduleId] = microtime(true);
         } catch (\Throwable $th) {
-            dd($th);
             return false;
         }
         return true;
