@@ -44,7 +44,7 @@ class Install extends Command
      */
     public function initDatabase()
     {
-        $this->call('migrate', ['--path' => './packages/stats-center/database/migrations/']);
+        $this->call('migrate', ['--path' => './vendor/oyhdd/laravel-stats/database/migrations/']);
 
         $this->call('db:seed', ['--class' => \Oyhdd\StatsCenter\Models\AdminMenuTableSeeder::class]);
     }
