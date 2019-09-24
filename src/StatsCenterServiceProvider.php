@@ -14,6 +14,7 @@ class StatsCenterServiceProvider extends ServiceProvider
         Console\StatsServer::class,
         Console\StatsSum::class,
         Console\Install::class,
+        Console\StatsClear::class,
     ];
 
     /**

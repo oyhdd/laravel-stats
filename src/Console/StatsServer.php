@@ -8,7 +8,9 @@ use Oyhdd\StatsCenter\Models\Api;
 use Oyhdd\StatsCenter\Services\StatsService;
 
 /**
- * php artisan stats-server
+ * 模调系统上报服务
+ *
+ * php artisan stats:server
  */
 class StatsServer extends Command
 {

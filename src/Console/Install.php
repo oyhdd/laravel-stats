@@ -4,6 +4,11 @@ namespace Oyhdd\StatsCenter\Console;
 
 use Illuminate\Console\Command;
 
+/**
+ * 模调系统安装
+ *
+ * php artisan stats:install
+ */
 class Install extends Command
 {
     /**

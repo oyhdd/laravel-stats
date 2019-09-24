@@ -9,6 +9,8 @@ use Oyhdd\StatsCenter\Models\StatsSum as StatsSumModel;
 use Oyhdd\StatsCenter\Models\Stats;
 
 /**
+ * 模调系统数据统计服务
+ *
  * php artisan stats-sum --date=2019-09-17
  */
 class StatsSum extends Command

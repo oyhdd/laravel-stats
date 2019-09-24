@@ -49,7 +49,12 @@ class StatsController extends Controller
         });
         $grid->date_key('日期')->sortable();
         $grid->column('total_count', '调用次数')->label('info')->sortable();
-        $grid->column('succ_count', '成功次数')->label('success')->sortable();
+        $grid->succ_count('成功次数')->display(function ($succ_count) {
+            if (!empty($succ_count)) {
+                return "<span class='label label-success'>{$succ_count}</span>";
+            }
+            return $succ_count;
+        })->sortable();
         $grid->fail_count('失败次数')->display(function ($fail_count) {
             if (!empty($fail_count)) {
                 return "<span class='label label-danger'>{$fail_count}</span>";
@@ -58,7 +63,7 @@ class StatsController extends Controller
         })->sortable();
         $grid->succ_rate('成功率')->display(function ($succ_rate) {
             return $succ_rate."%";
-        })->label('info')->sortable();
+        })->sortable();
         $grid->max_time('响应最大值')->display(function ($max_time) {
             return $max_time."ms";
         })->sortable();
