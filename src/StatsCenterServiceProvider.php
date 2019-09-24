@@ -103,7 +103,7 @@ class StatsCenterServiceProvider extends ServiceProvider
     }
 
     /**
-     * 将package中的配置覆盖项目的配置
+     * 将当前配置覆盖项目的配置
      */
     protected function mergeDefaultConfig($path, $key)
     {

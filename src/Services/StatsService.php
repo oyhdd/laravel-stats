@@ -14,7 +14,6 @@ class StatsService
 
     public function addStatsData($data)
     {
-        Log::info("写入数据",$data);
         $today = date('Ymd');
         $table_server = 'stats_server_'.$today;
         $table_client = 'stats_client_'.$today;

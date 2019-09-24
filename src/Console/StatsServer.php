@@ -160,7 +160,7 @@ class StatsServer extends Command
                 $dump_file = $this->setting['worker_dump_file']."_".$worker_id;
                 if (file_exists($dump_file)) {
                     $this->count = unserialize(file_get_contents($dump_file));
-                    Log::info("load worker {$worker_id} data from last :".print_r($this->count,1));
+                    // Log::info("load worker {$worker_id} data from last :".print_r($this->count,1));
                     unlink($dump_file);
                 }
             }
@@ -176,7 +176,7 @@ class StatsServer extends Command
                 $dump_file = $this->setting['task_dump_file']."_".$worker_id;
                 if (file_exists($dump_file)) {
                     $this->task_count = unserialize(file_get_contents($dump_file));
-                    Log::info("load task {$worker_id} data from last :".print_r($this->task_count,1));
+                    // Log::info("load task {$worker_id} data from last :".print_r($this->task_count,1));
                     unlink($dump_file);
                 }
             }

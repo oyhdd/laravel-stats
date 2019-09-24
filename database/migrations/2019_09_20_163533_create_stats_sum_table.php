@@ -27,7 +27,7 @@ class CreateStatsSumTable extends Migration
             $table->integer('total_count')->comment('调用次数');
             $table->integer('fail_count')->comment('失败次数');
             $table->integer('succ_count')->comment('成功次数');
-            $table->double('total_time', 8, 2)->comment('总调用时间');
+            $table->string('total_time', 8, 2)->comment('总调用时间');
             $table->double('total_fail_time', 8, 2)->comment('总失败调用时间');
             $table->double('max_time', 8, 2)->comment('最大响应时间');
             $table->double('min_time', 8, 2)->comment('最小响应时间');
