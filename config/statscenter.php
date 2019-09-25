@@ -46,7 +46,7 @@ return [
 
     'save_day' => 90,// 数据保存多少天
 
-    'time_key_min' => 1,// 统计时间间隔min
+    'time_key_min' => 5,// 统计时间间隔min
 
     'stats_port' => [
         'udp' => '9903',
