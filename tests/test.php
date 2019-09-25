@@ -8,10 +8,10 @@ use Oyhdd\StatsCenter\StatsCenter;
 if (PHP_SAPI == 'cli') {
     $num = 1000;//测试数量
     $serverIps = ['192.168.39.1', '192.168.39.2', '192.168.39.3', '192.168.39.4'];
-    $moduleIds = [100001, 100002, 100003, 100004];
+    $moduleIds = [100000, 100001, 100002, 100003];
     $interfaces = ['Test1','Test2','Test3','Test4'];
     for ($i=1; $i <= $num; $i++) {
-        $interface = 'Test'.$interfaces[array_rand($interfaces, 1)];
+        $interface = 'Test/'.$interfaces[array_rand($interfaces, 1)];
         $serverIp = $serverIps[array_rand($serverIps, 1)];
         $moduleId = $moduleIds[array_rand($moduleIds, 1)];
         StatsCenter::tick($interface, $moduleId);

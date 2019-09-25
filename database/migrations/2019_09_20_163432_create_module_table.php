@@ -39,6 +39,8 @@ class CreateModuleTable extends Migration
 
             $table->unique(['name', 'project_id']);
         });
+
+        DB::statement("ALTER TABLE module AUTO_INCREMENT=100000");
     }
 
     /**

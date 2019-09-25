@@ -39,6 +39,8 @@ class CreateInterfaceTable extends Migration
 
             $table->unique(['name', 'module_id']);
         });
+
+        DB::statement("ALTER TABLE interface AUTO_INCREMENT=100000");
     }
 
     /**

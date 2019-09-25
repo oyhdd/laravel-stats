@@ -5,13 +5,19 @@ namespace Oyhdd\StatsCenter\Http\Controllers;
 use Encore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
+use Illuminate\Http\Request;
 
 class BaseController extends Controller
 {
     use HasResourceActions;
 
     protected $title = 'Title';
+    public $request;
 
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
     /**
      * Set description for following 4 action pages.
      *
