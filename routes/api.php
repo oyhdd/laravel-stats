@@ -22,4 +22,8 @@ Route::group([
     $router->get('/stats/server', 'StatsController@server');
     //历史数据对比
     $router->get('/stats/history', 'StatsController@history');
+
+    $router->resource('/stats/users', UserController::class);
+
+    $router->get('/', 'HomeController@index')->name('admin.home');
 });

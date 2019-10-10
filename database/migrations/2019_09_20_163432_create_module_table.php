@@ -25,7 +25,7 @@ class CreateModuleTable extends Migration
             $table->string('intro', 128)->nullable()->comment('简介');
             $table->integer('owner_uid')->nullable()->comment('负责人id');
             $table->string('backup_uids', 128)->nullable()->comment('备选负责人');
-            $table->tinyInteger('enable_alarm')->default(0)->comment('是否开启弹窗 1 开启 0 关闭');
+            $table->tinyInteger('enable_alarm')->default(1)->comment('告警策略 1 开启 0 关闭');
             $table->string('alarm_uids', 255)->nullable()->comment('告警uids');
             $table->integer('alarm_per_minute')->default(10)->comment('报警间隔时间(分钟)');
             $table->string('alarm_types', 128)->nullable()->comment('报警类型 1 微信 2 短信 3 邮件');

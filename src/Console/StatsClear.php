@@ -11,7 +11,7 @@ use Oyhdd\StatsCenter\Models\StatsSum;
 /**
  * 模调系统数据清理
  *
- * php artisan stats:clear
+ * php artisan stats:clear --date=2019-10-01
  */
 class StatsClear extends Command
 {
@@ -20,7 +20,7 @@ class StatsClear extends Command
      *
      * @var string
      */
-    protected $signature = 'stats:clear';
+    protected $signature = 'stats:clear {--date=}';
 
     /**
      * The console command description.
@@ -48,8 +48,14 @@ class StatsClear extends Command
      */
     public function handle()
     {
-        $save_day = config('statscenter.save_day', 90);
-        $date_key = date("Y-m-d", strtotime("-{$save_day} day"));
+        $date_key = $this->option('date');
+        if (!empty($date_key)) {
+            $date_key = date("Y-m-d", strtotime($date_key));
+        }
+        if (empty($date_key)) {
+            $save_day = config('statscenter.save_day', 90);
+            $date_key = date("Y-m-d", strtotime("-{$save_day} day"));
+        }
 
         Stats::where('date_key', '<', $date_key)->delete();
         StatsClient::where('date_key', '<', $date_key)->delete();

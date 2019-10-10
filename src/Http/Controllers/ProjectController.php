@@ -32,14 +32,12 @@ class ProjectController extends BaseController
     {
         $grid = new Grid(new Project());
         $grid->model()->where('status', '>', Project::STATUS_DELETED);
-
-        $grid->column('id', 'ID')->sortable();
-        $grid->column('name', '项目名')->display(function ($name) {
-            $routePrefix = config('admin.route.prefix');
-            return "<a href='/{$routePrefix}/stats/module/?project_id={$this->id}'>{$name}</a>";
+        $grid->quickSearch(function ($model, $query) {
+            $model->where('status', '>', Project::STATUS_DELETED)->where('name', 'like', "%{$query}%");
         });
+        $grid->column('id', 'ID')->sortable();
+        $grid->column('name', '项目名');
         $grid->column('user.name', '负责人');
-        $grid->enable_alarm('告警策略')->using(Project::$label_enable_alarm);
         $grid->create_time('创建时间')->sortable();
 
         $grid->actions(function ($actions) {
@@ -50,15 +48,7 @@ class ProjectController extends BaseController
                 &nbsp;<span class='label label-success'>模块管理</span>&nbsp;</a>");
         });
 
-        $grid->filter(function ($filter) {
-            $filter->disableIdFilter();// 去掉默认的id过滤器
-            $filter->column(1/2, function ($filter) {
-                $filter->equal('id', '项目名')->select(Project::getList()->pluck('name', 'id')->toArray());
-            });
-            $filter->column(1/2, function ($filter) {
-                $filter->equal('enable_alarm', '告警策略')->select(Project::$label_enable_alarm);
-            });
-        });
+        $grid->disableFilter();
 
         return $grid;
     }
@@ -81,8 +71,6 @@ class ProjectController extends BaseController
         });
         $form->textarea('intro', '简介');
         $form->select('owner_uid', '负责人')->options(Project::getUserList());
-        $form->radio('enable_alarm', '告警策略')->options(Project::$label_enable_alarm)->default(Project::ALARM_DISABLE);
-        // $form->select('status', '状态')->options(Project::$label_status)->default(Project::STATUS_EFFECTIVE);
         $form->display('create_time', '创建时间');
         $form->display('update_time', '更新时间');
 
@@ -94,4 +82,5 @@ class ProjectController extends BaseController
         });
         return $form;
     }
+
 }

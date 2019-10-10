@@ -34,8 +34,9 @@ class ModuleController extends BaseController
         $grid = new Grid(new Module());
         $grid->model()->where('status', '>', Module::STATUS_DELETED);
 
+        $routePrefix = config('admin.route.prefix');
         $grid->column('id', 'ID')->sortable();
-        $grid->column('project.name', '项目名')->label();
+        $grid->column('project.name', '项目名');
         $grid->column('name', '模块名');
         $grid->enable_alarm('告警策略')->using(Module::$label_enable_alarm);
         $grid->column('user.name', '负责人');
@@ -44,17 +45,20 @@ class ModuleController extends BaseController
         });
         $grid->create_time('创建时间')->sortable();
 
-        $grid->actions(function ($actions) {
+        $grid->actions(function ($actions) use ($routePrefix) {
             $actions->disableView();
+            $actions->prepend("<a href='/{$routePrefix}/stats/api?module_id={$this->getKey()}'>&nbsp;<span class='label label-success'>接口管理</span>&nbsp;</a>");
         });
 
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();// 去掉默认的id过滤器
-            $filter->column(1/2, function ($filter) {
+            $filter->column(1/3, function ($filter) {
                 $filter->equal('id', '模块名')->select(Module::getList()->pluck('name', 'id')->toArray());
+            });
+            $filter->column(1/3, function ($filter) {
                 $filter->equal('project_id', '项目名')->select(Project::getList()->pluck('name', 'id')->toArray());
             });
-            $filter->column(1/2, function ($filter) {
+            $filter->column(1/3, function ($filter) {
                 $filter->equal('enable_alarm', '告警策略')->select(Module::$label_enable_alarm);
             });
         });
@@ -99,11 +103,11 @@ class ModuleController extends BaseController
         $form->tab('告警设置',function($form) {
             $form->radio('enable_alarm', '告警策略')->options(Module::$label_enable_alarm)->default(Module::ALARM_DISABLE);
             $form->checkbox('alarm_types', '告警方式')->options(Module::$label_alarm_types);
-            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10);
-            $form->number('success_rate', '成功率阀值(0-100)')->default(0);
-            $form->number('request_wave_rate', '调用量波动阀值(0-100)')->default(0);
-            $form->number('request_total_rate', '调用量报警阀值(0-100)')->default(0);
-            $form->number('avg_time_rate', '平均耗时报警阀值(ms),0表示不开启')->default(0);
+            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10)->min(1)->help('此间隔时间内相同的内容将不会告警');
+            $form->number('success_rate', '成功率阀值')->default(0)->min(0)->max(100)->help('0-100，低于该阈值将会告警');
+            $form->number('request_total_rate', '调用量报警阀值')->default(0)->min(0)->help('0表示不开启，低于该阈值将会告警');
+            $form->number('request_wave_rate', '调用量波动阀值')->default(0)->min(0)->max(100)->help('0-100，0表示不开启，高于该阈值将会告警（今天与昨天的调用量波动值）');
+            $form->number('avg_time_rate', '平均耗时报警阀值(ms),')->default(0)->min(0)->help('0表示不开启，高于该阈值将会告警');
         });
 
         $form->tools(function (Form\Tools $tools) {

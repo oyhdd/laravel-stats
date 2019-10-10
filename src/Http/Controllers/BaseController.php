@@ -101,13 +101,13 @@ class BaseController extends Controller
      */
     public function destroy($id)
     {
-        $model = $this->form()->model()->findOrFail($id);
-        if (isset($model->status)) {
-            $model->status = $model::STATUS_DELETED;
-            $ret = $model->save();
-        } else {
+        // $model = $this->form()->model()->findOrFail($id);
+        // if (isset($model->status)) {
+        //     $model->status = $model::STATUS_DELETED;
+        //     $ret = $model->save();
+        // } else {
             $ret = $this->form()->destroy($id);
-        }
+        // }
 
         if ($ret) {
             $data = [

@@ -12,7 +12,9 @@
     ],
     "require": {
         "php": ">=7.0.0",
-        "encore/laravel-admin": "^1.7"
+        "encore/laravel-admin": "^1.7",
+        "guzzlehttp/guzzle": "^6.3",
+        "predis/predis": "^1.1"
     },
     "autoload": {
         "psr-4": {

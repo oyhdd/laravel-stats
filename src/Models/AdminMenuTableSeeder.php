@@ -54,6 +54,15 @@ class AdminMenuTableSeeder extends Seeder
                 'permission' => 'auth.login',
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
+            ],[
+                'parent_id' => 0,
+                'order' => 1,
+                'title' => '用户管理',
+                'icon' => 'fa-users',
+                'uri' => '/stats/users',
+                'permission' => 'auth.login',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ]
         ]);
     }

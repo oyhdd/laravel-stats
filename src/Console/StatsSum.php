@@ -7,6 +7,7 @@ use Oyhdd\StatsCenter\Models\Api;
 use Oyhdd\StatsCenter\Models\Module;
 use Oyhdd\StatsCenter\Models\StatsSum as StatsSumModel;
 use Oyhdd\StatsCenter\Models\Stats;
+use Oyhdd\StatsCenter\Services\AlarmService;
 
 /**
  * 模调系统数据统计服务
@@ -29,6 +30,8 @@ class StatsSum extends Command
      */
     protected $description = 'Command description';
 
+    protected $alarmService;
+
     protected $moduleInfo;
 
     /**
@@ -36,8 +39,9 @@ class StatsSum extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(AlarmService $alarmService)
     {
+        $this->alarmService = $alarmService;
         parent::__construct();
     }
 
@@ -60,20 +64,15 @@ class StatsSum extends Command
     public function sum($date)
     {
         //获取所有接口
-        $interfaceInfo = Api::select(['id', 'name', 'module_id'])->orderBy('id', 'desc')->get()->toArray();
+        $interfaceInfo = Api::orderBy('id', 'desc')->get()->toArray();
         $this->moduleInfo = Module::pluck('name', 'id')->toArray();
 
         echo "update interface, interface_num=".count($interfaceInfo)." start\n";
         foreach ($interfaceInfo as $key => $ifce) {
             $res = $this->sumInterfaceData($date, $ifce, $this->moduleInfo);
-            if ($key / 10 == 0) {
-                sleep(1);
-            }
-            if (empty($res)) {
-                echo "update interface [", $ifce['name'], "] unchanged\n";
-            } else {
-                echo "update interface [", $ifce['name'], "] changed\n";
-                if ($key / 10 == 0) {
+            if (!empty($res)) {
+                echo "update interface [", $ifce['id'], " : ", $ifce['name'], "] changed\n";
+                if ($key % 20 == 0) {
                     sleep(1);
                 }
             }
@@ -166,6 +165,7 @@ class StatsSum extends Command
                 'module_id'    => $module_id,
             ];
 
+            $this->alarmService->alarm($ifce, $caculate);
             return StatsSumModel::updateOrCreate($attributes, $caculate);
         } else {
             return false;

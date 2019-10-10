@@ -46,9 +46,13 @@ class StatsCenterServiceProvider extends ServiceProvider
         $loader = \Illuminate\Foundation\AliasLoader::getInstance();
         $loader->alias('StatsCenter', \Oyhdd\StatsCenter\Facades\StatsCenter::class);
 
+        $this->loadViewsFrom(__DIR__ . '/Views', 'stats');// 指定视图目录
+
         // Publish configuration files
         $this->publishes([
-            __DIR__.'/../config/statscenter.php' => config_path('statscenter.php')
+            // __DIR__.'/Views' => base_path('resources/views/stats'),// 发布视图目录到resources 下
+            dirname(__DIR__).'/config/statscenter.php' => config_path('statscenter.php'),
+            dirname(__DIR__).'/assets' => public_path('vendor/stats'),// 发布资源文件到public下
         ]);
 
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -68,10 +72,15 @@ class StatsCenterServiceProvider extends ServiceProvider
         );
 
         $this->mergeDefaultConfig(__DIR__.'/../config/admin.php', 'admin');
+        $disks_admin = $this->app['config']->get('filesystems.disks.admin', []);
+        $config = $this->app['config']->get('filesystems', []);
+        if (empty($config['disks']['admin'])) {
+            $config['disks'] = array_merge($config['disks'], require __DIR__.'/../config/filesystems.php');
+            $this->app['config']->set('filesystems', $config);
+        }
 
         // 单例模式
-        $this->app->singleton('statscenter', function($app)
-        {
+        $this->app->singleton('statscenter', function($app) {
             return $app->make(StatsCenter::class);
         });
 

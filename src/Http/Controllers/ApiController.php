@@ -33,22 +33,33 @@ class ApiController extends BaseController
         $grid = new Grid(new Api());
 
         $grid->column('id', 'ID')->sortable();
-        $grid->column('module.name', '模块名')->label();
-        $grid->column('name', '接口名');
+        $grid->column('module', '模块名')->display(function ($module) {
+            $routePrefix = config('admin.route.prefix');
+            return "<a href='/{$routePrefix}/stats/index/?module_id=".$module["id"]."'>{$module['id']}:{$module['name']}</a>";
+        });
+        $grid->column('name', '接口名')->display(function ($name) {
+            $routePrefix = config('admin.route.prefix');
+            return "<a href='/{$routePrefix}/stats/index?interface_id=".$this->id."'>{$name}</a>";
+        });
         $grid->enable_alarm('告警策略')->using(Api::$label_enable_alarm);
-        $grid->column('success_rate', '成功率阀值');
-        $grid->column('request_total_rate', '调用量波动阀值');
+        $grid->success_rate('成功率阀值')->display(function ($success_rate) {
+            if (!empty($success_rate)) {
+                return $success_rate."%";
+            }
+            return $success_rate;
+        });
+        $grid->column('request_total_rate', '调用量报警阀值');
         $grid->column('user.name', '负责人');
         $grid->create_time('创建时间')->sortable();
 
         $grid->disableCreation();
         $grid->actions(function ($actions) {
-            $actions->disableView();
+            $actions->disableView()->disableDelete();
         });
 
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();// 去掉默认的id过滤器
-            $filter->column(1/2, function ($filter) {
+            $filter->column(2/3, function ($filter) {
                 $moduleList = Module::getList()->pluck('name', 'id')->toArray();
                 array_walk($moduleList, function (&$module, $module_id){
                     $module = $module_id.' : '.$module;
@@ -60,7 +71,7 @@ class ApiController extends BaseController
                 $filter->equal('id', '接口名')->select($interfaceList);
                 $filter->equal('module_id', '模块名')->select($moduleList);
             });
-            $filter->column(1/2, function ($filter) {
+            $filter->column(1/3, function ($filter) {
                 $filter->equal('enable_alarm', '告警策略')->select(Api::$label_enable_alarm);
             });
         });
@@ -90,44 +101,20 @@ class ApiController extends BaseController
             $form->radio('enable_alarm', '告警策略')->options(Api::$label_enable_alarm)->default(Api::ALARM_DISABLE);
             $form->checkbox('alarm_types', '告警方式')->options(Api::$label_alarm_types);
             $form->multipleSelect('alarm_uids', '告警接收方')->options(Api::getUserList());
-            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10);
-            $form->number('success_rate', '成功率阀值(0-100)')->default(0);
-            $form->number('request_wave_rate', '调用量波动阀值(0-100)')->default(0);
-            $form->number('request_total_rate', '调用量报警阀值(0-100)')->default(0);
-            $form->number('avg_time_rate', '平均耗时报警阀值(ms),0表示不开启')->default(0);
+            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10)->min(1)->help('此间隔时间内相同的内容将不会告警');
+            $form->number('success_rate', '成功率阀值')->default(0)->min(0)->max(100)->help('0-100，低于该阈值将会告警');
+            $form->number('request_total_rate', '调用量报警阀值')->default(0)->min(0)->help('0表示不开启，低于该阈值将会告警');
+            $form->number('request_wave_rate', '调用量波动阀值')->default(0)->min(0)->max(100)->help('0-100，0表示不开启，高于该阈值将会告警（今天与昨天的调用量波动值）');
+            $form->number('avg_time_rate', '平均耗时报警阀值(ms),')->default(0)->min(0)->help('0表示不开启，高于该阈值将会告警');
         });
 
         $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
+            $tools->disableView()->disableDelete();
         });
         $form->footer(function ($footer) {
             $footer->disableViewCheck()->disableEditingCheck()->disableCreatingCheck();
         });
 
         return $form->setWidth(7,3);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        if ($this->form()->destroy($id)) {
-            $data = [
-                'status'  => true,
-                'message' => trans('admin.delete_succeeded'),
-            ];
-        } else {
-            $data = [
-                'status'  => false,
-                'message' => trans('admin.delete_failed'),
-            ];
-        }
-
-        return response()->json($data);
     }
 }

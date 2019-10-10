@@ -45,9 +45,9 @@ class StatsServer extends Command
     public $insert_time = 50000; // 50秒执行一次Timer
     public $time_interval;
 
-    const PROCESS_NAME = "stats_server";
+    const PROCESS_NAME   = "stats_server";
     const CONSOLE_LENGTH = 14;
-    const STATS_PKG_LEN = 25;
+    const STATS_PKG_LEN  = 25;
 
     /**
      * Create a new command instance.
@@ -70,12 +70,12 @@ class StatsServer extends Command
     public function handle()
     {
         $udp_setting = [
-            'worker_num' => 24,
+            'worker_num'      => 24,
             'task_worker_num' => 24,
-            'max_request' => 0,
-            'dispatch_mode' => 1,
+            'max_request'     => 0,
+            'dispatch_mode'   => 1,
         ];
-        $this->setting = array_merge($udp_setting, config('statscenter.swoole_setting.udp'));
+        $this->setting  = array_merge($udp_setting, config('statscenter.swoole_setting.udp'));
         $this->pid_file = $this->setting['pid_file'] ?? storage_path('logs/server.pid');
 
         $udp_port = config('statscenter.stats_port.udp', 9903);
@@ -844,7 +844,7 @@ class StatsServer extends Command
             foreach ($this->task_count as $key => $data) {
                 //task 将本time_key之前的数据进行上报,本time_key的数据进行汇总
                 $m = explode('_', $key, 4);
-                if ( $m[2] < $time_key ) {
+                if ($m[2] < $time_key-1) {
                     $return[$key] = $data;
                     unset($this->task_count[$key]);
                 }

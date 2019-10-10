@@ -9,6 +9,7 @@ if (config('app.env') == 'production') {
 }
 
 return [
+    /************* swoole配置 *************/
     'swoole_setting' => [
         'udp' => [
             'worker_num'      => 8,  // 工作进程数量. 设置为CPU的1-4倍最合理
@@ -44,12 +45,34 @@ return [
         ],
     ],
 
+    /*********** 模调相关配置 *************/
     'save_day' => 90,// 数据保存多少天
-
     'time_key_min' => 5,// 统计时间间隔min
-
     'stats_port' => [
         'udp' => '9903',
         'tcp' => '9904',
+    ],
+
+    /************* 告警配置 *************/
+    'alarm' => [
+        // 企业微信配置
+        'wechat' => [
+            'class'       => 'Oyhdd\StatsCenter\Services\QyWechatServer', // 企业微信服务类
+            'corp_secret' => '',// 企业秘钥
+            'corp_id'     => '',// 企业id
+            'agent_id'    => '',// AgentId
+        ],
+        // // 短信配置
+        // 'sms' => [
+        //     'class'       => 'Your Class Path', // 短信服务类
+        //     'param1'      => '', // 参数
+        //     'param2'      => '', // 参数
+        // ],
+        // // 邮件配置
+        // 'email' => [
+        //     'class'       => 'Your Class Path', // 邮件服务类
+        //     'param1'      => '', // 参数
+        //     'param2'      => '', // 参数
+        // ]
     ]
 ];
