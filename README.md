@@ -53,7 +53,21 @@ php artisan stats:install
 ```
 &emsp;&emsp;文件发布成功后，会生成配置文件config/statscenter.php
 
-### **4、访问**
+### **4、配置脚本**
+- 数据上报服务:后台运行
+```bash
+php artisan stats:server
+```
+- 数据统计服务：每5分钟运行一次
+```bash
+php artisan stats:sum
+```
+- 数据定时清理服务：每天运行一次，清理90天以前的数据，可在 config\statscenter.php 中修改配置
+```bash
+php artisan stats:clear
+```
+
+### **5、访问**
 &emsp;&emsp;在浏览器打开{host}/admin 后即可访问
 
 ## **四、用法**
