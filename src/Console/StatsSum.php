@@ -94,10 +94,15 @@ class StatsSum extends Command
         $module_id = $ifce['module_id'];
 
         $res = Stats::where([
-            'date_key' => $date,
-            'interface_id' => $interface_id,
-            'module_id' => $module_id,
-        ])->orderBy('time_key', 'asc')->get()->toArray();
+                'date_key' => $date,
+                'interface_id' => $interface_id,
+                'module_id' => $module_id,
+            ])->orderBy('time_key', 'asc')->get()->toArray();
+        $total_count_yesterday = StatsSumModel::where([
+                'date_key' => date("Y-m-d", strtotime($date) - 86400),
+                'interface_id' => $interface_id,
+                'module_id' => $module_id,
+            ])->value('total_count');
         if (!empty($res)) {
             $caculate = [];
             foreach ($res as $v) {
@@ -165,7 +170,7 @@ class StatsSum extends Command
                 'module_id'    => $module_id,
             ];
 
-            $this->alarmService->alarm($ifce, $caculate);
+            $this->alarmService->alarm($ifce, array_merge($caculate, compact('total_count_yesterday')));
             return StatsSumModel::updateOrCreate($attributes, $caculate);
         } else {
             return false;
