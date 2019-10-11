@@ -39,15 +39,14 @@ class StatsController extends Controller
             admin_error("查询失败", "无法查看{$save_day}天前的统计信息。");
         }
 
-        $interfaceList = Api::getList()->toArray();
-        $interfaceList = array_column($interfaceList, null, 'id');
-
         $grid = new Grid(new StatsSum());
         $grid->model()->where(['date_key' => $date_key]);
 
-        $grid->column('module.name', '模块名');
-        $grid->column('interface_name', '接口名称')->display(function () use ($interfaceList) {
-            return isset($interfaceList[$this->interface_id]) ? $interfaceList[$this->interface_id]['name'] : '';
+        $grid->column('module_name', '模块名')->display(function ($module_name) {
+            return "{$this->module_id}:{$module_name}";
+        });
+        $grid->column('interface_name', '接口名称')->display(function ($interface_name){
+            return "{$this->interface_id}:{$interface_name}";;
         });
         $grid->date_key('日期')->sortable();
         $grid->column('total_count', '调用次数')->sortable();

@@ -39,7 +39,7 @@ class ApiController extends BaseController
         });
         $grid->column('name', '接口名')->display(function ($name) {
             $routePrefix = config('admin.route.prefix');
-            return "<a href='/{$routePrefix}/stats/index?interface_id=".$this->id."'>{$name}</a>";
+            return "<a href='/{$routePrefix}/stats/index?interface_id=".$this->id."'>{$this->id}:{$name}</a>";
         });
         $grid->enable_alarm('告警策略')->switch([
             'on'  => ['value' => Api::ALARM_ENABLE, 'text' => 'ON'],
