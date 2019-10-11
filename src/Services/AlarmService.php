@@ -5,6 +5,7 @@ use App;
 use Log;
 use Oyhdd\StatsCenter\Models\BaseModel;
 use Oyhdd\StatsCenter\Models\Module;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * 模调系统告警
@@ -63,6 +64,13 @@ class AlarmService
                 $alarm_uids         = $module['alarm_uids'];
                 $alarm_types        = $module['alarm_types'];
             }
+
+            // 重复数据请求间隔时间
+            $key = "wechat:stats_alarm_{$interface['id']}";
+            if (Cache::get($key)) {
+                return true;
+            }
+
             // 低于成功率阀值告警
             if (isset($stats['succ_rate']) && $stats['succ_rate'] < $success_rate) {
                 $alarm_content .= "成功率 {$stats['succ_rate']}%，低于 {$success_rate}%\n";
@@ -81,7 +89,9 @@ class AlarmService
             // 发送告警
             if (!empty($alarm_content)) {
                 $alarm_content = "模块 -- {$module['id']}:{$module['name']}\n接口 -- {$interface['id']}:{$interface['name']}\n\n".$alarm_content;
-                $this->send($alarm_types, $alarm_uids, $alarm_content, $alarm_per_minute);
+                if ($this->send($alarm_types, $alarm_uids, $alarm_content)) {
+                    Cache::put($key, 1, $alarm_per_minute * 60);
+                }
             }
         } catch (\Throwable $th){
             Log::error('告警失败', [sprintf(' %s At %s:%d', $th->getMessage(), $th->getFile(), $th->getLine())]);
@@ -97,12 +107,12 @@ class AlarmService
      * @param  string      $type                告警类型,逗号相隔： 1 微信 2 短信 3 邮件
      * @param  string      $alarm_uids          告警uids
      * @param  string      $message             告警内容
-     * @param  int         $alarm_per_minute    告警间隔时间(分钟)
-     * @return void
+     * @return bool
      */
-    public function send($type, $alarm_uids, $message, $alarm_per_minute = 10)
+    public function send($type, $alarm_uids, $message)
     {
         try {
+            $ret = false;
             $type = explode(',', $type);
             $alarm_uids = explode(',', $alarm_uids);
 
@@ -110,20 +120,20 @@ class AlarmService
                 switch ($alarm_type) {
                     // 微信告警
                     case BaseModel::ALARM_WECHAT:
-                        if (isset($this->alarm['wechat'])) {
-                            $this->alarm['wechat']->sendMessage($alarm_uids, $message, $alarm_per_minute);
+                        if (isset($this->alarm['wechat']) && $this->alarm['wechat']->sendMessage($alarm_uids, $message)) {
+                            $ret = true;
                         }
                         break;
                     // 短信告警
                     case BaseModel::ALARM_MSG:
-                        if (isset($this->alarm['sms'])) {
-                            $this->alarm['sms']->sendMessage($alarm_uids, $message, $alarm_per_minute);
+                        if (isset($this->alarm['sms']) && $this->alarm['sms']->sendMessage($alarm_uids, $message)) {
+                            $ret = true;
                         }
                         break;
                     // 邮件告警
                     case BaseModel::ALARM_EMAIL:
-                        if (isset($this->alarm['email'])) {
-                            $this->alarm['email']->sendMessage($alarm_uids, $message, $alarm_per_minute);
+                        if (isset($this->alarm['email']) && $this->alarm['email']->sendMessage($alarm_uids, $message)) {
+                            $ret = true;
                         }
                         break;
 
@@ -134,5 +144,7 @@ class AlarmService
         } catch (\Throwable $th){
             Log::error('发送告警消息失败', [sprintf(' %s At %s:%d', $th->getMessage(), $th->getFile(), $th->getLine())]);
         }
+
+        return $ret;
     }
 }

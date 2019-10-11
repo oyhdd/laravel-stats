@@ -4,6 +4,7 @@ namespace Oyhdd\StatsCenter\Services;
 use Log;
 use Illuminate\Support\Facades\Cache;
 use GuzzleHttp\Client;
+
 /**
  * 企业微信发送消息
  */
@@ -29,10 +30,9 @@ class QyWechatServer
      * @author Eric
      * @param  array       $alarm_uids          用户id
      * @param  string      $content             告警内容
-     * @param  int         $alarm_per_minute    告警间隔时间(分钟)
      * @return bool
      */
-    public function sendMessage($alarm_uids, $content, $alarm_per_minute = 10)
+    public function sendMessage($alarm_uids, $content)
     {
         $userModel = config('admin.database.users_model');
         $qy_wechat_uids = $userModel::whereIn('id', $alarm_uids)->pluck('qy_wechat_uid')->toArray();
@@ -42,11 +42,6 @@ class QyWechatServer
         $token = $this->getToken();
         try {
             $url = self::URL_SEND_MSG."?access_token={$token}";
-            // 重复数据请求间隔时间
-            $key = $this->getKey(md5($content));
-            if (Cache::get($key)) {
-                return true;
-            }
             $data = [
                "touser" => implode('|', $qy_wechat_uids),
                "msgtype" => "text",
@@ -70,7 +65,6 @@ class QyWechatServer
             if (!isset($response['errcode'])) {
                 return false;
             } elseif ($response['errcode'] == 0) {
-                Cache::put($key, 1, $alarm_per_minute * 60);
                 return true;
             } elseif (in_array($response['errcode'], [40014, 41001, 42001])) {
                 $this->getToken(true);
