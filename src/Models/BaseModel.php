@@ -39,8 +39,8 @@ class BaseModel extends Model
     const ALARM_ENABLE  = 1;
     const ALARM_DISABLE = 0;
     public static $label_enable_alarm = [
-        self::ALARM_ENABLE  => '开启',
-        self::ALARM_DISABLE => '关闭',
+        self::ALARM_ENABLE  => 'ON',
+        self::ALARM_DISABLE => 'OFF',
     ];
 
     /**

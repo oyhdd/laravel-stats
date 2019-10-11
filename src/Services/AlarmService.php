@@ -47,45 +47,45 @@ class AlarmService
         }
 
         try {
-            $alarm_content = "";
+            $alarm_content      = "";
+            $success_rate       = $interface['success_rate'];
+            $request_total_rate = $interface['request_total_rate'];
+            $avg_time_rate      = $interface['avg_time_rate'];
+            $alarm_per_minute   = $interface['alarm_per_minute'];
+            $alarm_uids         = $interface['alarm_uids'];
+            $alarm_types        = $interface['alarm_types'];
+            // 未自定义告警设置时使用所属模块的配置
+            if ($interface['enable_alarm_setting'] == BaseModel::ALARM_DISABLE) {
+                $success_rate       = $module['success_rate'];
+                $request_total_rate = $module['request_total_rate'];
+                $avg_time_rate      = $module['avg_time_rate'];
+                $alarm_per_minute   = $module['alarm_per_minute'];
+                $alarm_uids         = $module['alarm_uids'];
+                $alarm_types        = $module['alarm_types'];
+            }
             // 低于成功率阀值告警
-            if (isset($stats['succ_rate']) && $stats['succ_rate'] < $interface['success_rate']) {
-                $alarm_content .= "成功率 {$stats['succ_rate']}%，低于 {$interface['success_rate']}%\n";
+            if (isset($stats['succ_rate']) && $stats['succ_rate'] < $success_rate) {
+                $alarm_content .= "成功率 {$stats['succ_rate']}%，低于 {$success_rate}%\n";
             }
 
             // 低于调用量报警阀值告警
-            if (isset($stats['total_count']) && $interface['request_total_rate'] > 0 && $stats['total_count'] < $interface['request_total_rate']) {
-                $alarm_content .= "调用量 {$stats['total_count']}，低于 {$interface['request_total_rate']}\n";
+            if (isset($stats['total_count']) && $request_total_rate > 0 && $stats['total_count'] < $request_total_rate) {
+                $alarm_content .= "调用量 {$stats['total_count']}，低于 {$request_total_rate}\n";
             }
 
             // 低于调用量波动阀值告警
             // if (isset($stats['total_count']) && $stats['total_count'] < $interface['request_wave_rate']) {
-                // $alarm_content .= "调用量波动 {$stats['total_count']}，低于 {$interface['request_total_rate']}\n";
+                // $alarm_content .= "调用量波动 {$stats['total_count']}，低于 {$interface['request_wave_rate']}\n";
             // }
 
             // 低于平均耗时报警阀值告警
-            if (isset($stats['avg_time']) && $interface['avg_time_rate'] > 0 && $stats['avg_time'] > $interface['avg_time_rate']) {
-                $alarm_content .= "平均耗时 {$stats['avg_time']}ms，超过 {$interface['avg_time_rate']}ms\n";
+            if (isset($stats['avg_time']) && $avg_time_rate > 0 && $stats['avg_time'] > $avg_time_rate) {
+                $alarm_content .= "平均耗时 {$stats['avg_time']}ms，超过 {$avg_time_rate}ms\n";
             }
 
             // 发送告警
             if (!empty($alarm_content)) {
                 $alarm_content = "--接口 : {$interface['id']}:{$interface['name']}\n\n".$alarm_content;
-                // 报警间隔时间
-                $alarm_per_minute = $interface['alarm_per_minute'];
-                if (empty($alarm_per_minute)) {
-                    $alarm_per_minute = $module['alarm_per_minute'];
-                }
-                // 告警接收方
-                $alarm_uids = $interface['alarm_uids'];
-                if (empty($alarm_uids)) {
-                    $alarm_uids = $module['alarm_uids'];
-                }
-                // 告警类型
-                $alarm_types = $interface['alarm_types'];
-                if (empty($alarm_types)) {
-                    $alarm_types = $module['alarm_types'];
-                }
                 $this->send($alarm_types, $alarm_uids, $alarm_content, $alarm_per_minute);
             }
         } catch (\Throwable $th){

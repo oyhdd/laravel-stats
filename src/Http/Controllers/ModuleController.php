@@ -38,7 +38,10 @@ class ModuleController extends BaseController
         $grid->column('id', 'ID')->sortable();
         $grid->column('project.name', '项目名');
         $grid->column('name', '模块名');
-        $grid->enable_alarm('告警策略')->using(Module::$label_enable_alarm);
+        $grid->enable_alarm('告警策略')->switch([
+            'on'  => ['value' => Module::ALARM_ENABLE, 'text' => 'ON'],
+            'off' => ['value' => Module::ALARM_DISABLE, 'text' => 'OFF'],
+        ]);
         $grid->column('user.name', '负责人');
         $grid->column('backup_uids', '备选负责人')->display(function ($backup_uids) {
             return implode(',', $this->getUserList(explode(',', $backup_uids)));
@@ -101,8 +104,12 @@ class ModuleController extends BaseController
             $form->display('update_time', '更新时间');
         });
         $form->tab('告警设置',function($form) {
-            $form->radio('enable_alarm', '告警策略')->options(Module::$label_enable_alarm)->default(Module::ALARM_DISABLE);
+            $form->switch('enable_alarm', '告警策略')->states([
+                'on'  => ['value' => Module::ALARM_ENABLE, 'text' => 'ON'],
+                'off' => ['value' => Module::ALARM_DISABLE, 'text' => 'OFF'],
+            ]);
             $form->checkbox('alarm_types', '告警方式')->options(Module::$label_alarm_types);
+            $form->multipleSelect('alarm_uids', '告警接收方')->options(Module::getUserList());
             $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10)->min(1)->help('此间隔时间内相同的内容将不会告警');
             $form->number('success_rate', '成功率阀值')->default(0)->min(0)->max(100)->help('0-100，低于该阈值将会告警');
             $form->number('request_total_rate', '调用量报警阀值')->default(0)->min(0)->help('0表示不开启，低于该阈值将会告警');
