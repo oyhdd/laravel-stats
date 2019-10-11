@@ -52,7 +52,7 @@ class QyWechatServer
                "msgtype" => "text",
                "agentid" => $this->agent_id,
                "text" => [
-                    "content" => "【".config("app.env", "undefined")."环境】".date("Y-m-d H:i:s")."\n".$content,
+                    "content" => "【模调系统】".date("Y-m-d H:i:s")."\n".$content,
                 ],
                "safe" => 0,
                "enable_id_trans" => 0

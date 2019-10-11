@@ -70,7 +70,7 @@ class AlarmService
 
             // 低于调用量报警阀值告警
             if (isset($stats['total_count']) && $request_total_rate > 0 && $stats['total_count'] < $request_total_rate) {
-                $alarm_content .= "调用量{$stats['total_count']}，低于 {$request_total_rate}\n";
+                $alarm_content .= "调用量 {$stats['total_count']}，低于 {$request_total_rate}\n";
             }
 
             // 高于平均耗时报警阀值告警
@@ -80,7 +80,7 @@ class AlarmService
 
             // 发送告警
             if (!empty($alarm_content)) {
-                $alarm_content = "--接口 : {$interface['id']}:{$interface['name']}\n\n".$alarm_content;
+                $alarm_content = "模块 -- {$module['id']}:{$module['name']}\n接口 -- {$interface['id']}:{$interface['name']}\n\n".$alarm_content;
                 $this->send($alarm_types, $alarm_uids, $alarm_content, $alarm_per_minute);
             }
         } catch (\Throwable $th){

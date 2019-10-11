@@ -29,8 +29,6 @@ class StatsClear extends Command
      */
     protected $description = 'Command description';
 
-    protected $moduleInfo;
-
     /**
      * Create a new command instance.
      *
