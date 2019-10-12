@@ -98,6 +98,19 @@ class StatsSum extends Command
                 'interface_id' => $interface_id,
                 'module_id' => $module_id,
             ])->orderBy('time_key', 'asc')->get()->toArray();
+
+        // 每日00:10内统计一次调用量波动
+        $time_interval = config('statscenter.time_key_min', 5);
+        $time_key = intval((23*60 + 59) / $time_interval);
+        $now_time_key = intval((date('G')*60 + date('i')) / $time_interval);
+        if ($now_time_key == $time_key) {
+            $total_count_yesterday = StatsSumModel::where([
+                'date_key' => date("Y-m-d", strtotime('-1 day')),
+                'interface_id' => $interface_id,
+                'module_id' => $module_id,
+            ])->value('total_count');
+        }
+
         if (!empty($res)) {
             $caculate = [];
             foreach ($res as $v) {
@@ -164,8 +177,7 @@ class StatsSum extends Command
                 'interface_id' => $interface_id,
                 'module_id'    => $module_id,
             ];
-
-            $this->alarmService->alarm($ifce, $caculate);
+            $this->alarmService->alarm($ifce, array_merge($caculate, compact('total_count_yesterday')));
             return StatsSumModel::updateOrCreate($attributes, $caculate);
         } else {
             return false;

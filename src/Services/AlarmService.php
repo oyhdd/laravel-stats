@@ -55,6 +55,7 @@ class AlarmService
             $alarm_per_minute   = $interface['alarm_per_minute'];
             $alarm_uids         = $interface['alarm_uids'];
             $alarm_types        = $interface['alarm_types'];
+            $request_wave_rate  = $interface['request_wave_rate'];
             // 未自定义告警设置时使用所属模块的配置
             if ($interface['enable_alarm_setting'] == BaseModel::ALARM_DISABLE) {
                 $success_rate       = $module['success_rate'];
@@ -63,11 +64,12 @@ class AlarmService
                 $alarm_per_minute   = $module['alarm_per_minute'];
                 $alarm_uids         = $module['alarm_uids'];
                 $alarm_types        = $module['alarm_types'];
+                $request_wave_rate  = $module['request_wave_rate'];
             }
 
             // 重复数据请求间隔时间
             $key = "wechat:stats_alarm_{$interface['id']}";
-            if (Cache::get($key)) {
+            if (Cache::get($key) && empty($stats['total_count_yesterday'])) {
                 return true;
             }
 
@@ -76,14 +78,22 @@ class AlarmService
                 $alarm_content .= "成功率 {$stats['succ_rate']}%，低于 {$success_rate}%\n";
             }
 
-            // 低于调用量报警阀值告警
-            if (isset($stats['total_count']) && $request_total_rate > 0 && $stats['total_count'] < $request_total_rate) {
+            // 低于调用量报警阀值告警:每日判断一次
+            if ($request_total_rate > 0 && !empty($stats['total_count_yesterday']) && isset($stats['total_count']) && $stats['total_count'] < $request_total_rate) {
                 $alarm_content .= "调用量 {$stats['total_count']}，低于 {$request_total_rate}\n";
             }
 
             // 高于平均耗时报警阀值告警
             if (isset($stats['avg_time']) && $avg_time_rate > 0 && $stats['avg_time'] > $avg_time_rate) {
                 $alarm_content .= "平均耗时 {$stats['avg_time']}ms，高于 {$avg_time_rate}ms\n";
+            }
+
+            // 高于调用量波动阀值告警（今天与昨天的调用量波动值）
+            if ($request_wave_rate >0 && !empty($stats['total_count_yesterday'])){
+                $wave_rate = floor((($stats['total_count'] - $stats['total_count_yesterday']) / $stats['total_count_yesterday']) * 10000) / 100;
+                if ($wave_rate > $request_wave_rate) {
+                    $alarm_content .= "调用量波动高于 {$request_wave_rate}%：\n当前 {$stats['total_count']}，昨日 {$stats['total_count_yesterday']}\n";
+                }
             }
 
             // 发送告警

@@ -110,11 +110,11 @@ class ModuleController extends BaseController
             ]);
             $form->checkbox('alarm_types', '告警方式')->options(Module::$label_alarm_types);
             $form->multipleSelect('alarm_uids', '告警接收方')->options(Module::getUserList());
-            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10)->min(1)->help('此间隔时间内相同的内容将不会告警');
-            $form->number('success_rate', '成功率阀值')->default(0)->min(0)->max(100)->help('0-100，低于该阈值将会告警');
-            $form->number('request_total_rate', '调用量报警阀值')->default(0)->min(0)->help('0表示不开启，低于该阈值将会告警');
-            // $form->number('request_wave_rate', '调用量波动阀值')->default(0)->min(0)->max(100)->help('0-100，0表示不开启，高于该阈值将会告警（今天与昨天的调用量波动值）');
-            $form->number('avg_time_rate', '平均耗时报警阀值(ms),')->default(0)->min(0)->help('0表示不开启，高于该阈值将会告警');
+            $form->number('alarm_per_minute', '告警间隔时间(分钟)')->default(10)->help('此间隔时间内相同的内容将不会告警');
+            $form->number('success_rate', '成功率阀值')->default(0)->help('0-100，低于该阈值将会告警');
+            $form->number('request_total_rate', '调用量报警阀值')->default(0)->help('0表示不开启，低于该阈值将会告警');
+            $form->number('request_wave_rate', '调用量波动阀值')->default(0)->help('0-100，0表示不开启，高于该阈值将会告警（今天与昨天的调用量波动值）');
+            $form->number('avg_time_rate', '平均耗时报警阀值(ms),')->default(0)->help('0表示不开启，高于该阈值将会告警');
         });
 
         $form->tools(function (Form\Tools $tools) {
