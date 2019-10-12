@@ -1,4 +1,4 @@
-# **基于swoole的实现的laravel模调系统扩展包**
+# **基于swoole实现的laravel模调系统扩展包**
 
 [演示地址](http://121.199.40.77/admin)
 
