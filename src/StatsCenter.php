@@ -49,7 +49,7 @@ class StatsCenter
      * @param  bool         $success            请求是否成功
      * @param  int          $retCode            返回码
      * @param  string       $serverIp           服务端ip(非模调系统ip)
-     * @param  int          $costTime           接口耗时(微秒):若有值，则无需执行tick函数
+     * @param  int          $costTime           接口耗时(毫秒):若有值，则无需执行tick函数
      * @return bool
      */
     public static function report($interface, $moduleId, $success, $retCode, $serverIp = 0, $costTime = null)
@@ -68,10 +68,10 @@ class StatsCenter
                     $timeStart = microtime(true);
                 }
 
-                $costTime = microtime(true) - $timeStart;
+                $costTime = (microtime(true) - $timeStart) * 1000;
             }
 
-            $packData = pack(self::PACK_STATS, $interface, $moduleId, $success, $retCode, ip2long($serverIp), $costTime * 1000, time());
+            $packData = pack(self::PACK_STATS, $interface, $moduleId, $success, $retCode, ip2long($serverIp), $costTime, time());
             return self::sendData('udp://'.self::HOST_STATS, $packData);
         } catch (\Throwable $th) {
             return false;

@@ -874,44 +874,44 @@ class StatsServer extends Command
     public static function initCostTimeDistribution()
     {
         return [
-            '5'    => 0, //少于5ms
-            '10'   => 0, //少于10ms
-            '50'   => 0, //少于50ms
-            '100'  => 0, //少于100ms
-            '500'  => 0, //少于500ms
-            '500+' => 0, //大于500ms
+            '0~10ms'    => 0, //少于10ms
+            '10~50ms'   => 0, //少于50ms
+            '50~100ms'  => 0, //少于100ms
+            '100~200ms' => 0, //少于200ms
+            '200~500ms' => 0, //少于500ms
+            '500ms+'    => 0, //大于500ms
         ];
     }
 
     /**
-     * 计算耗时分布，统计标准线 5ms 10ms 50ms 100ms 500ms 500ms+
+     * 计算耗时分布，统计标准线 10ms 50ms 100ms 200ms 500ms 500ms+
      * @param $costTime
      * @param $array
      */
     public static function getCostTimeDistribution($costTime, &$array)
     {
-        if ($costTime < 5) {
-            $array['5']++;
-        } elseif ($costTime < 10) {
-            $array['10']++;
+        if ($costTime < 10) {
+            $array['0~10ms']++;
         } elseif ($costTime < 50) {
-            $array['50']++;
+            $array['10~50ms']++;
         } elseif ($costTime < 100) {
-            $array['100']++;
+            $array['50~100ms']++;
+        } elseif ($costTime < 200) {
+            $array['100~200ms']++;
         } elseif ($costTime < 500) {
-            $array['500']++;
+            $array['200~500ms']++;
         } else {
-            $array['500+']++;
+            $array['500ms+']++;
         }
     }
 
     public static function sumCostTimeDistribution(&$result, $data)
     {
-        $result['5'] += $data['5'];
-        $result['10'] += $data['10'];
-        $result['50'] += $data['50'];
-        $result['100'] += $data['100'];
-        $result['500'] += $data['500'];
-        $result['500+'] += $data['500+'];
+        $result['0~10ms']    += $data['0~10ms'];
+        $result['10~50ms']   += $data['10~50ms'];
+        $result['50~100ms']  += $data['50~100ms'];
+        $result['100~200ms'] += $data['100~200ms'];
+        $result['200~500ms'] += $data['200~500ms'];
+        $result['500ms+']    += $data['500ms+'];
     }
 }

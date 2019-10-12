@@ -20,12 +20,15 @@ if (PHP_SAPI == 'cli') {
         $moduleId = array_rand($data, 1);
         $interface = $data[$moduleId];
         StatsCenter::tick($interface, $moduleId);
-        $retCode = rand(0, 10);
         if (rand(1, 10) > 2) {
             $success = 1;
+            $retCode = 0;
+            $cost_time = rand(0, 200);
         } else {
             $success = 0;
+            $retCode = -1;
+            $cost_time = rand(200, 1000);
         }
-        StatsCenter::report($interface, $moduleId, $success, $retCode, $serverIp, rand(0, 1));
+        StatsCenter::report($interface, $moduleId, $success, $retCode, $serverIp, $cost_time);
     }
 }

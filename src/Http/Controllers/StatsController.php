@@ -5,6 +5,7 @@ namespace Oyhdd\StatsCenter\Http\Controllers;
 use DB;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Row;
+use Encore\Admin\Layout\Column;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
@@ -85,7 +86,7 @@ class StatsController extends Controller
             $param = "interface_id={$actions->row->interface_id}&module_id={$actions->row->module_id}&date_key={$date_key}";
             $history_param = "interface_id={$actions->row->interface_id}&start_date=".date("Y-m-d", strtotime($date_key)-7*86400)."&end_date={$date_key}";
             $actions->append("<a href='/{$routePrefix}/stats/detail?{$param}'>调用明细&nbsp;</a>");
-            $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/history?{$history_param}'>&nbsp;历史数据对比&nbsp;</a>");
+            $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/analyze?{$history_param}'>&nbsp;数据分析&nbsp;</a>");
             $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/client?{$param}'>&nbsp;主调明细&nbsp;</a>");
             $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/server?{$param}'>&nbsp;被调明细</a>");
         });
@@ -196,7 +197,7 @@ class StatsController extends Controller
             $routePrefix = config('admin.route.prefix');
             $param = "interface_id={$actions->row->interface_id}&module_id={$actions->row->module_id}&date_key={$date_key}";
             $history_param = "interface_id={$actions->row->interface_id}&start_date=".date("Y-m-d", strtotime($date_key)-7*86400)."&end_date={$date_key}";
-            $actions->append("<a href='/{$routePrefix}/stats/history?{$history_param}'>&nbsp;历史数据对比&nbsp;</a>");
+            $actions->append("<a href='/{$routePrefix}/stats/analyze?{$history_param}'>&nbsp;数据分析&nbsp;</a>");
             $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/client?{$param}'>&nbsp;主调明细&nbsp;</a>");
             $actions->append("&nbsp;|&nbsp;<a href='/{$routePrefix}/stats/server?{$param}'>&nbsp;被调明细&nbsp;</a>");
         });
@@ -386,11 +387,11 @@ class StatsController extends Controller
     }
 
     /**
-     * 历史数据对比
+     * 数据分析
      *
      * @return Grid
      */
-    public function history(Request $request, Content $content)
+    public function analyze(Request $request, Content $content)
     {
         $params = $request->all();
         if (empty($params['interface_id'])) {
@@ -421,15 +422,16 @@ class StatsController extends Controller
             $yCountData['失败次数'][] = isset($statsSum[$day_key]) ? $statsSum[$day_key]['fail_count'] : 0;
             $yCountData['成功率'][] = isset($statsSum[$day_key]) ? $statsSum[$day_key]['succ_rate'] : 0;
         }
-        $box_count_days = new Box("每日接口请求量对比", view('stats::history_count_days', [
+        $box = [];
+        $box['count_days'] = new Box("每日接口请求量对比", view('stats::history_count_days', [
             'xData' => json_encode($xDayData),
             'yData' => json_encode($yCountData),
         ]));
-        $box_count_days->collapsable()->style('primary')->solid();
+        $box['count_days']->collapsable()->style('primary')->solid();
 
         // 单日每小时接口请求量对比
-        $xHourData = $yCountToday = $yTimeToday = [];
-        $statsData = Stats::where(['date_key' => $params['end_date'],'interface_id' => $params['interface_id']])->get()->toArray();
+        $xHourData = $yCountToday = $yTimeToday = $costTimeToday = [];
+        $statsData = Stats::where(['date_key' => $params['end_date'], 'interface_id' => $params['interface_id']])->get()->toArray();
         for ($i=1; $i <= 24; $i++) {
             $xHourData[] = sprintf("%02d:00", $i);
             $yCountToday['总调用量'][] = 0;
@@ -458,19 +460,27 @@ class StatsController extends Controller
             $yTimeToday['最小响应时间'][$hour-1] = $stats['min_time'];
             $yTimeToday['平均响应时间'][$hour-1] = $stats['avg_time'];
             $yTimeToday['平均失败时间'][$hour-1] = $stats['avg_fail_time'];
+
+            $cost_time = json_decode($stats['cost_time'], true);
+            foreach ($cost_time as $cost_time_key => $cost_time_count) {
+                if (!isset($costTimeToday[$cost_time_key])) {
+                    $costTimeToday[$cost_time_key] = 0;
+                }
+                $costTimeToday[$cost_time_key] += $cost_time_count;
+            }
         }
-        $box_count_today = new Box("单日每小时接口请求量对比 ({$params['end_date']})", view('stats::history_count_today', [
+        $box['count_today'] = new Box("单日每小时接口请求量对比 ({$params['end_date']})", view('stats::history_count_today', [
             'xData'   => json_encode($xHourData),
             'yData'   => json_encode($yCountToday),
         ]));
-        $box_count_today->collapsable()->style('primary')->solid();
+        $box['count_today']->collapsable()->style('primary')->solid();
 
         // 单日接口请求时间对比
-        $box_time_today = new Box("单日接口请求时间对比（ms） ({$params['end_date']})", view('stats::history_time_today', [
+        $box['time_today'] = new Box("单日接口请求时间对比（ms） ({$params['end_date']})", view('stats::history_time_today', [
             'xData' => json_encode($xHourData),
             'yData' => json_encode($yTimeToday),
         ]));
-        $box_time_today->collapsable()->style('primary')->solid();
+        $box['time_today']->collapsable()->style('primary')->solid();
 
         // 每日接口请求时间对比
         $yTimeDays = [];
@@ -480,27 +490,36 @@ class StatsController extends Controller
             $yTimeDays['平均响应时间'][] = isset($statsSum[$day]) ? $statsSum[$day]['avg_time'] : 0;
             $yTimeDays['平均失败时间'][] = isset($statsSum[$day]) ? $statsSum[$day]['avg_fail_time'] : 0;
         }
-        $box_time_days = new Box("每日接口请求时间对比（ms）", view('stats::history_time_days', [
+        $box['time_days'] = new Box("每日接口请求时间对比（ms）", view('stats::history_time_days', [
             'xData' => json_encode($xDayData),
             'yData' => json_encode($yTimeDays),
         ]));
-        $box_time_days->collapsable()->style('primary')->solid();
+        $box['time_days']->collapsable()->style('primary')->solid();
+
+        // 单日接口请求耗时分布
+        $box['cost_time'] = new Box("单日接口请求耗时分布 ({$params['end_date']})", view('stats::history_cost_time_today', [
+            'costTimeToday' => json_encode($costTimeToday)
+        ]));
+        $box['cost_time']->collapsable()->style('primary')->solid();
 
         $content->row(view('stats::history_filter', [
             'params' => $params,
             'apiList' => json_encode(Api::getList()->pluck('name', 'id')->toArray())
         ]));
-        $content->row(function(Row $row) use ($box_count_days, $box_count_today) {
-            $row->column(6, $box_count_days);
-            $row->column(6, $box_count_today);
-        });
-        $content->row(function(Row $row) use ($box_time_days, $box_time_today) {
-            $row->column(6, $box_time_days);
-            $row->column(6, $box_time_today);
+        $content->row(function (Row $row) use ($box) {
+            $row->column(6, function (Column $column) use ($box) {
+                $column->row($box['count_days']);
+                $column->row($box['time_days']);
+                $column->row($box['cost_time']);
+            });
+            $row->column(6, function (Column $column) use ($box) {
+                $column->row($box['count_today']);
+                $column->row($box['time_today']);
+            });
         });
 
         return $content
-            ->header('历史数据对比')
+            ->header('数据分析')
             ->description("最多可对比连续{$save_day}天的统计数据");
     }
 }

@@ -21,7 +21,7 @@ Route::group([
     //被调明细
     $router->get('/stats/server', 'StatsController@server');
     //历史数据对比
-    $router->get('/stats/history', 'StatsController@history');
+    $router->get('/stats/analyze', 'StatsController@analyze');
 
     $router->resource('/stats/users', UserController::class);
 
