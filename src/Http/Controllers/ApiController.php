@@ -83,8 +83,8 @@ class ApiController extends BaseController
                 array_walk($interfaceList, function (&$interface, $interface_id){
                     $interface = $interface_id.' : '.$interface;
                 });
-                $filter->equal('id', '接口名')->select($interfaceList);
                 $filter->equal('module_id', '模块名')->select($moduleList);
+                $filter->equal('id', '接口名')->select($interfaceList);
             });
             $filter->column(1/3, function ($filter) {
                 $filter->equal('enable_alarm', '告警策略')->select(Api::$label_enable_alarm);

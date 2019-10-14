@@ -461,12 +461,14 @@ class StatsController extends Controller
             $yTimeToday['平均响应时间'][$hour-1] = $stats['avg_time'];
             $yTimeToday['平均失败时间'][$hour-1] = $stats['avg_fail_time'];
 
-            $cost_time = json_decode($stats['cost_time'], true);
-            foreach ($cost_time as $cost_time_key => $cost_time_count) {
-                if (!isset($costTimeToday[$cost_time_key])) {
-                    $costTimeToday[$cost_time_key] = 0;
+            $cost_time = @json_decode($stats['cost_time'], true);
+            if (!empty($cost_time)) {
+                foreach ($cost_time as $cost_time_key => $cost_time_count) {
+                    if (!isset($costTimeToday[$cost_time_key])) {
+                        $costTimeToday[$cost_time_key] = 0;
+                    }
+                    $costTimeToday[$cost_time_key] += $cost_time_count;
                 }
-                $costTimeToday[$cost_time_key] += $cost_time_count;
             }
         }
         $box['count_today'] = new Box("单日每小时接口请求量对比 ({$params['end_date']})", view('stats::history_count_today', [
