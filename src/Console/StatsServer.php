@@ -207,7 +207,7 @@ class StatsServer extends Command
     public function onWorkerExit(\swoole_server $serv, $worker_id)
     {
         Log::info("onWorkerExit [$worker_id]|pid=" . $serv->worker_pid);
-        \Swoole\Timer::clearAll();
+        // \Swoole\Timer::clearAll();
     }
 
     /**
