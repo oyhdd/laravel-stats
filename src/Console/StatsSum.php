@@ -103,6 +103,7 @@ class StatsSum extends Command
         $time_interval = config('statscenter.time_key_min', 5);
         $time_key = intval((23*60 + 59) / $time_interval);
         $now_time_key = intval((date('G')*60 + date('i')) / $time_interval);
+        $total_count_yesterday = 0;
         if ($now_time_key == $time_key) {
             $total_count_yesterday = StatsSumModel::where([
                 'date_key' => date("Y-m-d", strtotime('-1 day')),
