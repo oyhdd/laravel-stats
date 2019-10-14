@@ -15,7 +15,7 @@
         var option = {
             tooltip : {
                 trigger: 'item',
-                formatter: "{a} <br/>{b} : {c}次 ({d}%)"
+                formatter: "{a} <br/>{b} ({d}%)"
             },
             legend: {
                 type: 'scroll',

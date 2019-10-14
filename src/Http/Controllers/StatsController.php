@@ -497,6 +497,10 @@ class StatsController extends Controller
         $box['time_days']->collapsable()->style('primary')->solid();
 
         // 单日接口请求耗时分布
+        foreach ($costTimeToday as $key => $value) {
+            $costTimeToday["{$key}: {$value}次"] = $value;
+            unset($costTimeToday[$key]);
+        }
         $box['cost_time'] = new Box("单日接口请求耗时分布 ({$params['end_date']})", view('stats::history_cost_time_today', [
             'costTimeToday' => json_encode($costTimeToday)
         ]));
