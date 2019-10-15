@@ -99,22 +99,25 @@ class StatsSum extends Command
                 'module_id' => $module_id,
             ])->orderBy('time_key', 'asc')->get()->toArray();
 
-        // 每日00:10内统计一次调用量波动
         $time_interval = config('statscenter.time_key_min', 5);
-        $time_key = intval((23*60 + 59) / $time_interval);
-        $now_time_key = intval((date('G')*60 + date('i')) / $time_interval);
-        $total_count_yesterday = 0;
-        if ($now_time_key == $time_key) {
-            $total_count_yesterday = StatsSumModel::where([
-                'date_key' => date("Y-m-d", strtotime('-1 day')),
-                'interface_id' => $interface_id,
-                'module_id' => $module_id,
-            ])->value('total_count');
+        $time_key = intval((date('G')*60 + date('i')) / $time_interval) -2;
+        if ($time_key < 0) {
+            $time_key = 0;
         }
-
+        $total_count_yesterday = Stats::where([
+                'date_key'     => date("Y-m-d", strtotime('-1 day')),
+                'time_key'     => $time_key,
+                'interface_id' => $interface_id,
+                'module_id'    => $module_id,
+            ])
+            ->value('total_count');
+        $total_count_now = 0;
         if (!empty($res)) {
             $caculate = [];
             foreach ($res as $v) {
+                if ($v['time_key'] == $time_key) {
+                    $total_count_now = $v['total_count'];
+                }
                 //总数
                 if (!isset($caculate['total_count'])) {
                     $caculate['total_count'] = $v['total_count'];
@@ -178,7 +181,7 @@ class StatsSum extends Command
                 'interface_id' => $interface_id,
                 'module_id'    => $module_id,
             ];
-            $this->alarmService->alarm($ifce, array_merge($caculate, compact('total_count_yesterday')));
+            $this->alarmService->alarm($ifce, array_merge($caculate, compact('total_count_yesterday','total_count_now')));
             return StatsSumModel::updateOrCreate($attributes, $caculate);
         } else {
             return false;
