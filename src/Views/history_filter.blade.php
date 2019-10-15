@@ -29,8 +29,9 @@
 <link rel="stylesheet" href="{{ URL::asset('/vendor/stats/css/bootstrap-select.css') }}">
 <script type="text/javascript">
     $(document).ready(function(){
+        console.log('<?= $apiList ?>')
         $('#api_list').selectpicker('refresh');
-        var apiList = JSON.parse('<?= $apiList ?>');
+        var apiList = JSON.parse(transSpecialChar('<?= $apiList ?>'));
         var interface_id = '<?= $params['interface_id'] ?>';
 
         $('#api_list').on('loaded.bs.select', function () {
@@ -45,4 +46,23 @@
     $('#search').unbind('click').click(function () {
         location = window.location.pathname + "?interface_id=" + $('#api_list').val() + "&end_date=" + $('#end_date').val() + "&start_date=" + $('#start_date').val();
     });
+
+    /**
+     * @name   特殊字符转义
+     * @param  string    str 需转义的字符串
+     * @return string
+     */
+    function transSpecialChar(str) {
+        if (str != undefined && str != "" && str != null) {
+            str = str.replace(/\r/g, "\\r");
+            str = str.replace(/\n/g, "\\n");
+            str = str.replace(/\\/g, "\\\\");
+            str = str.replace(/("")+/g, '"');
+            str = str.replace(/\'/g, "&#39;");
+            str = str.replace(/ /g, "&nbsp;");
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+        }
+        return str;
+    }
 </script>
