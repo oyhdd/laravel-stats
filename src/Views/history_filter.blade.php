@@ -29,7 +29,6 @@
 <link rel="stylesheet" href="{{ URL::asset('/vendor/stats/css/bootstrap-select.css') }}">
 <script type="text/javascript">
     $(document).ready(function(){
-        console.log('<?= $apiList ?>')
         $('#api_list').selectpicker('refresh');
         var apiList = JSON.parse(transSpecialChar('<?= $apiList ?>'));
         var interface_id = '<?= $params['interface_id'] ?>';
